@@ -66,6 +66,7 @@ export class App extends React.PureComponent<{}, AppState> {
 
 				<footer>
 					<div className='meta-data'>By {ticket.userEmail} | { new Date(ticket.creationTime).toLocaleString()}</div>
+          <div className='labels'> {ticket.labels && ticket.labels.map((label, i)=> <span key={i} className='label'>{label}</span>)} </div>
 				</footer>
 			</li>))}
 		</ul>);
