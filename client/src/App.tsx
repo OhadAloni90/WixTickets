@@ -1,75 +1,74 @@
 import React from 'react';
 import './App.scss';
-import { createApiClient, Ticket } from './api';
+import {createApiClient, Ticket} from './api';
 
 export type AppState = {
-  tickets?: Ticket[],
-  search: string;
+	tickets?: Ticket[],
+	search: string;
+	
 }
 
 const api = createApiClient();
 
 export class App extends React.PureComponent<{}, AppState> {
 
-  state: AppState = {
-    search: ''
-  }
+	
+	state: AppState = {
+		search: ''
+	}
 
-  searchDebounce: any = null;
+	searchDebounce: any = null;
 
-  async componentDidMount() {
-    this.setState({
-      tickets: await api.getTickets()
-    });
-  }
+	async componentDidMount() {
+		this.setState({
+			tickets: await api.getTickets()
+		});
+	}
 
-  renderTickets = (tickets: Ticket[]) => {
+	renderTickets = (tickets: Ticket[]) => {
 
-    const filteredTickets = tickets
-      .filter((t) => (t.title.toLowerCase() + t.content.toLowerCase()).includes(this.state.search.toLowerCase()));
+		const filteredTickets = tickets
+			.filter((t) => (t.title.toLowerCase() + t.content.toLowerCase()).includes(this.state.search.toLowerCase()));
 
-    return (<ul className='tickets'>
-      {filteredTickets.map((ticket) => (<li key={ticket.id} className='ticket'>
-        <h5 className='title'>{ticket.title}</h5>
-        {(ticket.labels && ticket.labels.length) ?
-          <div>
-            {ticket.labels.map(label => <span className={'itemLabel'}>{label}</span>)}
-          </div>
-          : null}
-        <footer>
-          <div className='meta-data'>By {ticket.userEmail} | {new Date(ticket.creationTime).toLocaleString()}</div>
-        </footer>
-      </li>))}
-    </ul>);
-  }
 
-  onSearch = async (val: string, newPage?: number) => {
+		return (<ul className='tickets'>
+			{filteredTickets.map((ticket) => (<li key={ticket.id} className='ticket'>
+				<div className='title-block'>
+					<h5 className='title'>{ticket.title}</h5>
+					<h4 className='hide-btn'>Hide</h4>
+				</div>
+				<p className='content'>{ticket.content}</p> {/*show tickets content */}
 
-    clearTimeout(this
+				<footer>
+					<div className='meta-data'>By {ticket.userEmail} | { new Date(ticket.creationTime).toLocaleString()}</div>
+				</footer>
+			</li>))}
+		</ul>);
+	}
 
-      .searchDebounce
-    );
+	onSearch = async (val: string, newPage?: number) => {
+		
+		clearTimeout(this.searchDebounce);
 
-    this
-      .searchDebounce = setTimeout(async () => {
-      this.setState({
-        search: val
-      });
-    }, 300);
-  }
+		this.searchDebounce = setTimeout(async () => {
+			this.setState({
+				search: val
+			});
+		}, 300);
+	}
 
-  render() {
-    const { tickets } = this.state;
+	render() {	
+		const {tickets} = this.state;
 
-    return (<main>
-      <h1>Tickets List</h1>
-      <header>
-        <input type="search" placeholder="Search..." onChange={(e) => this.onSearch(e.target.value)}/>
-      </header>
-      {tickets ? <div className='results'>Showing {tickets.length} results</div> : null}
-      {tickets ? this.renderTickets(tickets) : <h2>Loading..</h2>}
-    </main>)
-  }
+		return (<main>
+			<h1>Tickets List</h1>
+			<header>
+				<input type="search" placeholder="Search..." onChange={(e) => this.onSearch(e.target.value)}/>
+			</header>
+			{tickets ? <div className='results'>Showing {tickets.length} results</div> : null }	
+			{tickets ? this.renderTickets(tickets) : <h2>Loading..</h2>}
+		</main>)
+	}
 }
 
 export default App;
