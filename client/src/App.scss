@@ -58,7 +58,10 @@ body {
 		font-weight: 500;
 		font-size: 12px;
 	}
+	.showmore-btn {
+		font-size: 0.8ren;
 
+	}
 	.tickets {
 
 		margin: 0;
@@ -105,9 +108,22 @@ body {
 				justify-content:space-between;
 
 			}
+
 			.content {
 				font-weight: 100;
-				color: gray
+				color: gray;
+				-webkit-line-clamp: 3;
+				-webkit-box-orient: vertical;
+				display: -webkit-box;
+				
+				overflow: hidden;
+				text-overflow: ellipsis;
+				
+
+				&[data-showMore=true]{
+				-webkit-line-clamp: unset;
+				}
+				
 			}
 			footer {
 
