@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser = require('body-parser');
 import { tempData } from './temp-data';
 import { serverAPIPort, APIPath } from '@fed-exam/config';
+import {Ticket} from '../client/src/api'
 
 console.log('starting server', { serverAPIPort, APIPath });
 
@@ -19,14 +20,24 @@ app.use((_, res, next) => {
 });
 
 app.get(APIPath, (req, res) => {
-
+  let filtData = [];
   // @ts-ignore
   const page: number = req.query.page || 1;
+  const search: string = req.query.search || 1;
+  if(!search) {
+    filtData = [...tempData]
+    console.log('this is tempdata' + tempData)
 
-  const paginatedData = tempData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  }
+  else {
+    filtData = tempData.filter((ticket)=> ticket.title.includes(search) || ticket.content.includes(search)) ;
 
+  }
+  const paginatedData = filtData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  
   res.send(paginatedData);
 });
+
 
 app.listen(serverAPIPort);
 console.log('server running', serverAPIPort)

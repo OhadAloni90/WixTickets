@@ -10,7 +10,8 @@ export type AppState = {
 	search: string,
 	hiddenTickets: number;
 	showFullText: boolean;
-	searchDebounce: any
+	searchDebounce: any,
+	
 }
 
 const api = createApiClient();
