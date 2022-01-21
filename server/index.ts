@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser = require('body-parser');
 import { tempData } from './temp-data';
 import { serverAPIPort, APIPath } from '@fed-exam/config';
-import {Ticket} from '../client/src/api'
+import {Ticket, TicketResponse} from '../client/src/api'
 
 console.log('starting server', { serverAPIPort, APIPath });
 
@@ -21,21 +21,34 @@ app.use((_, res, next) => {
 
 app.get(APIPath, (req, res) => {
   let filtData = [];
-  // @ts-ignore
   const page: number = req.query.page || 1;
-  const search: string = req.query.search || 1;
+  const search: string = req.query.search || '';
+  const numOfPages: number = Math.ceil(tempData.length / PAGE_SIZE)
+  const iOfLastTckt: number = page * PAGE_SIZE;
+  const iOfFirstTckt: number = iOfLastTckt - PAGE_SIZE;
+  let paginationData: Ticket[] = [];
+
+
   if(!search) {
     filtData = [...tempData]
-    console.log('this is tempdata' + tempData)
-
   }
   else {
-    filtData = tempData.filter((ticket)=> ticket.title.includes(search) || ticket.content.includes(search)) ;
+    filtData = tempData.filter((ticket) => ticket.title.includes(search) || ticket.content.includes(search)) ;
 
   }
-  const paginatedData = filtData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  console.log('page num is', page)
+  console.log('io first', iOfFirstTckt)
+  console.log('io second', iOfLastTckt)
   
-  res.send(paginatedData);
+
+  if( iOfLastTckt - iOfFirstTckt > 0) {
+     paginationData = filtData.slice(iOfFirstTckt, iOfLastTckt);
+
+  }
+  let result: TicketResponse = {ticketPage: paginationData, numberOfPages: numOfPages, pageNumber: page };
+  res.send(result);
+
 });
 
 

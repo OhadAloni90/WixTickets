@@ -1,9 +1,9 @@
 body {
+	height: 100%;
 	font-family: 'Open Sans', sans-serif;
-
 	background-color: #f5f9fc;
 	padding-top: 100px;
-	
+	height: 100%;
 	padding: 50px;
 
 	main {
@@ -20,7 +20,29 @@ body {
 		font-size: 12px;
 		margin: 12px 5px;
 	}
+	.copy-btn {
+		display: flex;
+		justify-content: flex-end;
+		align-content: flex-end;
+		color: #7a92a5;
+		transition: top ease 0.5s;
+		position: relative;
+		top: 0;
 
+
+	}
+	.suc-copy {
+		color: rgba(0, 128, 0, 0.637);
+		background-color: #20455e0e;
+		border-radius: 3rem;
+		
+	}
+	.copy-btn:hover {
+		cursor: pointer;
+		top: -4px;
+
+		
+	}
 	header {
 		width: 100%;
 		flex-shrink: 0;

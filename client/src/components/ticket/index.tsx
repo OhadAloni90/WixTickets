@@ -1,7 +1,7 @@
 import React from 'react';
 import { Ticket } from '../../api';
 import style from './style.module.scss'
-
+import {FaCopy} from "react-icons/fa"
 export type TicketProps = {
 	ticket: Ticket,
 	onHideChange: Function;
@@ -9,7 +9,8 @@ export type TicketProps = {
 }
 
 export type TicketState = {
-	showMore: boolean	
+	showMore: boolean,
+	copyText: boolean
 }
 
 
@@ -19,15 +20,28 @@ export class TicketCard extends React.PureComponent<TicketProps,TicketState> {
 		super(props);
 
 		this.state = {
-			showMore: false
+			showMore: false,
+			copyText: false
 		}
 	}
 	onHide = (id: string) => {
 		this.props.onHideChange(id);
 	}
 
+	onCopyToClipBoard = (content: string) => {
+		navigator.clipboard.writeText(content);
+		this.setState({
+			copyText: true})
+
+		setTimeout(async () => {
+			this.setState({
+				copyText: false
+			});
 
 
+		}, 800);
+	}
+	
 	render() {	
 		const {ticket} = this.props;
 		const {showMore} = this.state;
@@ -36,9 +50,12 @@ export class TicketCard extends React.PureComponent<TicketProps,TicketState> {
 		return <div className="ticket-block" >
 			<li key={ticket.id} className='ticket'>
 			<div className='title-block'>
+
 					<h5 className='title'>{ticket.title}</h5>
+
 					<h4 className='hide-btn' onClick={()=>this.onHide(ticket.id)}>Hide</h4>
 			</div>
+
 			<div className="content" data-showmore={showMore}>
 				
 				{ticket.content}
@@ -47,10 +64,13 @@ export class TicketCard extends React.PureComponent<TicketProps,TicketState> {
 					<div>	
 						{ticket.content.length > 500 ? <a key={ticket.id} onClick={()=>this.setState({showMore: !showMore})}>{showMore ? 'Show less' : 'Show more'}</a> : null}
 					</div>
+					<span  className='copy-btn' onClick={() => this.onCopyToClipBoard(ticket.content)}><FaCopy/>{this.state.copyText ? <span className='suc-copy'>Copied</span> : null}</span>
 
 			<footer>
 					<div className='meta-data'>By {ticket.userEmail} | { new Date(ticket.creationTime).toLocaleString()}</div>
 					<div className='labels'> {ticket.labels && ticket.labels.map((label, i)=> <span key={i} className='label'>{label}</span>)} </div>
+					
+					
 			</footer>
 
 			</li>

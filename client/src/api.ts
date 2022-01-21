@@ -8,17 +8,22 @@ export type Ticket = {
     creationTime: number;
     userEmail: string;
     labels?: string[];
+    isHidden: boolean;
 }
-
+export type TicketResponse = {
+    ticketPage: Ticket[], 
+    numberOfPages: number, 
+    pageNumber: number
+}
 export type ApiClient = {
-    getTickets: (search: string) => Promise<Ticket[]>;
+    getTickets: (search: string, page: number) => Promise<TicketResponse>;
 }
 
 
 export const createApiClient = (): ApiClient => {
     return {
-        getTickets: (search: string) => {
-            return axios.get(APIRootPath, {params: {search: search}}).then((res) => res.data);
+        getTickets: (search: string, page: number) => {
+            return axios.get(APIRootPath, {params: {search: search, page: page}}).then((res) => res.data);
         }
     }
 }
