@@ -19,6 +19,7 @@ app.use((_, res, next) => {
   next();
 });
 
+
 app.get(APIPath, (req, res) => {
   let filtData = [];
   const page: number = req.query.page || 1;
@@ -28,25 +29,45 @@ app.get(APIPath, (req, res) => {
   const iOfFirstTckt: number = iOfLastTckt - PAGE_SIZE;
   let paginationData: Ticket[] = [];
 
+  
 
-  if(!search) {
+  if(!search) { 
     filtData = [...tempData]
   }
   else {
-    filtData = tempData.filter((ticket) => ticket.title.includes(search) || ticket.content.includes(search)) ;
+    //ran out of time, but:
+    //The idea was to find the appropriate tickets for the requested dates, or send the requested email, but the code does not work well and is not algorithmically correct. 
+    //There is a problem of spaces or values ​​that are not 1: 1 the requested values. There is also a problem with frondend regarding their client side and rendering of the tickets.
+    // The better way or the next thing I woul've done is to slice or use a function to get the indexes and ignore and values who can break the code. After we have the indexes, we
+    // can map as done in this code, using the same boolean expression to filter the tickets array we get from the server.
+    if (search.match('after:')) {
+      let date = search.slice(6,16);
+      let searchTitle = search.slice(16);
+      
+      filtData = tempData.filter((ticket)=> ((new Date(ticket.creationTime).toLocaleDateString("en-UK").replace(/\//g, '-') < date) && ticket.title.toLowerCase().includes(searchTitle))
+      
+      )}
+    else if (search.startsWith('before:')) {
+      let date = search.slice(7,17);
+      let searchTitle = search.slice(17);
+      filtData = tempData.filter((ticket)=> ((new Date(ticket.creationTime).toLocaleDateString("en-UK").replace(/\//g, '-') > date) && ticket.title.toLowerCase().includes(searchTitle))
 
+      )} 
+
+    else if (search. startsWith('from:')) {
+      let eMail = search.slice(5);
+      filtData = tempData.filter((ticket)=> ticket.userEmail.toLowerCase().includes(eMail))
+
+    }
+    else {
+      filtData = tempData.filter((ticket) => ticket.title.includes(search) || ticket.content.includes(search)) ;
+    }
   }
-
-  console.log('page num is', page)
-  console.log('io first', iOfFirstTckt)
-  console.log('io second', iOfLastTckt)
-  
-
-  if( iOfLastTckt - iOfFirstTckt > 0) {
+    
      paginationData = filtData.slice(iOfFirstTckt, iOfLastTckt);
 
-  }
-  let result: TicketResponse = {ticketPage: paginationData, numberOfPages: numOfPages, pageNumber: page };
+
+  let result: TicketResponse = {ticketPage: paginationData, numberOfPages: numOfPages, pageNumber: page }
   res.send(result);
 
 });

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Ticket } from '../../api';
-import style from './style.module.scss'
-import {FaCopy} from "react-icons/fa"
+import {FaCopy, FaStar} from "react-icons/fa"
+
 export type TicketProps = {
 	ticket: Ticket,
-	onHideChange: Function;
+	onHideChange: Function,
+	onFavChange: Function
 	
 }
 
@@ -21,11 +22,15 @@ export class TicketCard extends React.PureComponent<TicketProps,TicketState> {
 
 		this.state = {
 			showMore: false,
-			copyText: false
+			copyText: false,
 		}
 	}
 	onHide = (id: string) => {
 		this.props.onHideChange(id);
+	}
+
+	onFav = (id: string) => {
+		this.props.onFavChange(id)
 	}
 
 	onCopyToClipBoard = (content: string) => {
@@ -41,7 +46,7 @@ export class TicketCard extends React.PureComponent<TicketProps,TicketState> {
 
 		}, 800);
 	}
-	
+
 	render() {	
 		const {ticket} = this.props;
 		const {showMore} = this.state;
@@ -55,21 +60,24 @@ export class TicketCard extends React.PureComponent<TicketProps,TicketState> {
 
 					<h4 className='hide-btn' onClick={()=>this.onHide(ticket.id)}>Hide</h4>
 			</div>
-
 			<div className="content" data-showmore={showMore}>
-				
 				{ticket.content}
 					
 			</div>
 					<div>	
 						{ticket.content.length > 500 ? <a key={ticket.id} onClick={()=>this.setState({showMore: !showMore})}>{showMore ? 'Show less' : 'Show more'}</a> : null}
 					</div>
-					<span  className='copy-btn' onClick={() => this.onCopyToClipBoard(ticket.content)}><FaCopy/>{this.state.copyText ? <span className='suc-copy'>Copied</span> : null}</span>
 
 			<footer>
 					<div className='meta-data'>By {ticket.userEmail} | { new Date(ticket.creationTime).toLocaleString()}</div>
 					<div className='labels'> {ticket.labels && ticket.labels.map((label, i)=> <span key={i} className='label'>{label}</span>)} </div>
-					
+					<hr/>
+					<div className='extra-cont'>
+						<span className='copy-btn' onClick={()=>this.onFav(ticket.id)}><FaStar/></span>
+						<span  className='copy-btn' onClick={() => this.onCopyToClipBoard(ticket.content)}><FaCopy/>{this.state.copyText ? <span className='suc-copy'>Copied</span> : null}</span>
+
+					</div>
+
 					
 			</footer>
 

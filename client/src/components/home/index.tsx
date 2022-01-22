@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaRegStar } from 'react-icons/fa';
 import {createApiClient, Ticket, TicketResponse} from '../../api'
 import { TicketCard } from '../ticket';
 
@@ -9,8 +10,9 @@ export type HomeState = {
 	 searchDebounce: any,
 	 page: number,
 	 tktsPetPage: number,
-	 numOfPages: number,
-	 didScrollToBottom: boolean
+	 didScrollToBottom: boolean,
+	 favTickets: Ticket[],
+	 isToggled: boolean
 }
 
 
@@ -26,8 +28,9 @@ export class Home extends React.PureComponent<{},HomeState> {
 			searchDebounce: null,
 			page: 1,
 			tktsPetPage: 20,
-			numOfPages: 10,
 			didScrollToBottom: false,
+			favTickets: [],
+			isToggled: true
 			
 			
 		}
@@ -36,7 +39,7 @@ export class Home extends React.PureComponent<{},HomeState> {
 	
 	api = createApiClient();
 
-	async componentDidMount() {
+	async componentDidMount() { // Call getTickets on scroll with a listener.
     	await this.getTickets(this.state.search, this.state.page);
 		window.addEventListener('scroll', this.onScroll);
 
@@ -67,44 +70,68 @@ export class Home extends React.PureComponent<{},HomeState> {
 		
 		this.setState({
 			tickets: returnedArray,
-			hiddenTickets: this.state.hiddenTickets+1})
+			hiddenTickets: this.state.hiddenTickets + 1})
 			
     }
 
-	onScroll = async() => {
-		
+	onScroll = async() => { //Inifinite scroll 
+		const {isToggled} = this.state;
 		console.log(window.innerHeight + window.scrollY)
 		console.log(document.body.scrollHeight)
-		if ((window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight -	 10))
+		if ((window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight -	 10) ) 
 		{	
-			if(!this.state.didScrollToBottom)
+			if(!this.state.didScrollToBottom && isToggled) //Got re-rendered so I had to put a boolean value because it was too sensitive
 			{
 				this.setState({didScrollToBottom: true})
 				console.log(document.body.scrollLeft)
 				const newPage = this.state.page + 1;
 				this.setState({page: newPage})
 				await this.getTickets(this.state.search, newPage)
-				this.setState({numOfPages: this.state.numOfPages - 1})
-				console.log(this.state.numOfPages)
 				
 			}	
-		
 			
 		}
-
 
 		else {
 			this.setState({didScrollToBottom: false})
 		}
 	}	
 
+	onIsFav = async() => {
+		const {tickets,favTickets, isToggled} = this.state;
+		this.setState({isToggled: !isToggled})
+		if(isToggled) {
+			this.setState({tickets: favTickets})
+		}
+		else if(!isToggled){
+			this.setState({tickets: []})
+			await this.getTickets('', 1)
+		}
+	}
+		
+		
 
+    
+
+
+    onFavHandler = (ticketId: string) => {
+		 this.state.tickets.map(ticket => {
+			if(ticket.id === ticketId && this.state.favTickets.every((ticket)=>ticket.id !== ticketId)){ // Avoid double values in list
+				this.state.favTickets.push(ticket)
+
+			}
+		});
+		this.setState({
+			favTickets: this.state.favTickets})
+		
+		console.log(this.state.favTickets)
+			
+    }
+	
 
 
 	onRestoreHandler = () => {
 		let returnedArray = this.state.tickets.map((ticket) =>  {return { ...ticket, isHidden : false}})
-			
-		
 		
 		this.setState({
 			tickets: returnedArray,
@@ -119,17 +146,10 @@ export class Home extends React.PureComponent<{},HomeState> {
 			.filter((ticket)=> !ticket.isHidden)
 			.filter((t) => (t.title.toLowerCase() + t.content.toLowerCase()).includes(this.state.search.toLowerCase()));
 
-			//calc : 
-			const iOfLastTckt: number = this.state.page * this.state.tktsPetPage;
-			const iOfFirstTckt: number = iOfLastTckt - this.state.tktsPetPage;
-			const pagignatedTkts: Ticket[] = filteredTickets.slice(iOfFirstTckt,iOfLastTckt)
-
-
 				return (<div className='tickets'>
 						{filteredTickets && filteredTickets.map((ticket:Ticket)=>{
 								return(
-									<TicketCard key={ticket.id} ticket={ticket} onHideChange={this.onHideHandler}/>
-	
+									<TicketCard key={ticket.id} ticket={ticket} onFavChange= {this.onFavHandler} onHideChange={this.onHideHandler} />
 								)
 								
 						})}</div>)
@@ -152,16 +172,35 @@ export class Home extends React.PureComponent<{},HomeState> {
 
 	}
 	
+	onSortHandle = (tickets: Ticket[]) => {
+		let returnedArray = tickets.sort((a,b)=> new Date(a.creationTime) > new Date(b.creationTime) ? 1 : -1).
+		map((ticket)=>  {return { ...ticket}})
+		this.setState({tickets: returnedArray})
+	}
+
+
 	render() {	
 		
 		const {tickets, hiddenTickets} = this.state;
 		return (<main>
-			<h1>Tickets List</h1>
+			<div className='headline'>
+				<h1>Tickets List </h1> 
+				<div className='fav-div'>
+					<span ><FaRegStar className='star'/></span>
+						<label className="switch" >
+							<input type="checkbox" onClick = {()=>this.onIsFav()}/>
+							<span className="slider round"></span>
+						</label>
+				</div>
+			</div>
 			<header>
 				<input type="search" placeholder="Search..." onChange={(e) => this.onSearch(e.target.value)}/>
 			</header>
-			{tickets ? <div className='results'>Showing {tickets.length} results {hiddenTickets ? <i>({hiddenTickets} hidden tickets) <a onClick={() => this.onRestoreHandler() }>restore</a></i>  : null}	</div> : null }
+			{tickets ? <button className='sort-btn' onClick={()=> this.onSortHandle(tickets)}>Filter by date</button>:null}
+
+			{tickets ? <div className='results'>Showing {tickets.length-hiddenTickets} results {hiddenTickets ? <i>({hiddenTickets} hidden tickets) <a onClick={() => this.onRestoreHandler() }>restore</a></i>  : null}	</div> : null }
 			{tickets ? this.renderTickets(tickets) : <h2>Loading..</h2>}
+
 		</main>)
 	}
 }

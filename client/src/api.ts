@@ -8,7 +8,8 @@ export type Ticket = {
     creationTime: number;
     userEmail: string;
     labels?: string[];
-    isHidden: boolean;
+    isHidden: boolean,
+    isFav: boolean
 }
 export type TicketResponse = {
     ticketPage: Ticket[], 
